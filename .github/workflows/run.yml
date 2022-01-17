@@ -1,0 +1,31 @@
+name: payload-dumper-actions
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install depedencies
+        run: |
+          mkdir tmp
+          wget https://github.com/ssut/payload-dumper-go/releases/download/1.2.0/payload-dumper-go_1.2.0_linux_amd64.tar.gz -P tmp/
+          tar zxvf ./tmp/payload-dumper-go_1.2.0_linux_amd64.tar.gz -o payload-dumper-go
+          
+      - name: Download ROM
+        run: |
+          wget -O ./tmp/ROM.zip -i url.txt
+          unzip -o ./tmp/ROM.zip -d tmp/ "payload.bin"
+          ./payload-dumper-go -p boot -o output ./tmp/payload.bin
+          rm -rf tmp/
+          rm payload-dumper-go
+          
+      - name: Upload to Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: boot.img
+          path: './output/boot.img'
